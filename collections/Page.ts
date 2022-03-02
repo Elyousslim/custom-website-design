@@ -1,22 +1,52 @@
 import { CollectionConfig } from 'payload/types';
-import { MediaType } from './Media';
-import formatSlug from '../utilities/formatSlug';
-import { Image, Type as ImageType } from '../blocks/Image';
-import { CallToAction, Type as CallToActionType } from '../blocks/CallToAction';
+import { Type as MediaType } from './Media';
+// import { Image, Type as ImageType } from '../blocks/Image';
+import CallToAction, { Type as CallToActionType } from '../blocks/CallToAction';
 import { Content, Type as ContentType } from '../blocks/Content';
+import { Media, Type as MediaBlockType } from '../blocks/Media';
+import Statistics, { Type as StatisticsType } from '../blocks/Statistics';
+import Spacer, { Type as SpacerType } from '../blocks/Spacer';
+import StickyContent, { Type as StickyContentType } from '../blocks/StickyContent';
+import Slider, { Type as SliderType } from '../blocks/Slider';
+import MediaContentCollage, { Type as ImageContentCollageType } from '../blocks/MediaContentCollage';
+import MediaStatCollage, { Type as MediaStatCollageType } from '../blocks/MediaStatCollage';
+import MediaGrid, { Type as MediaGridType } from '../blocks/MediaGrid';
+import MediaCollage, { Type as MediaCollageType } from '../blocks/MediaCollage';
+import StudySlider, { Type as StudySliderType } from '../blocks/StudySlider';
+import CTAGrid, { Type as CTAGridType } from '../blocks/CTAGrid';
+// import RedHeadline from '../components/RichText/leaves/RedHeadline';
+// import RedUnderline from '../components/RichText/leaves/RedUnderline';
 
-export type Layout = CallToActionType | ContentType | ImageType
+import slug from '../fields/slug';
+import meta, { Type as MetaType } from '../fields/meta';
+
+export type Layout =
+  CallToActionType
+  | ContentType
+  | CTAGridType
+  | MediaBlockType
+  | MediaCollageType
+  | ImageContentCollageType
+  | MediaGridType
+  | MediaStatCollageType
+  | SliderType
+  | SpacerType
+  | StatisticsType
+  | StickyContentType
+  | StudySliderType
+
+
+export type HeroType = 'minimal' | 'contentAboveMedia' | 'contentLeftOfMedia'
 
 export type Type = {
   title: string
+  heroType: 'minimal' | 'contentAboveMedia' | 'contentLeftOfMedia'
+  heroContent: unknown
+  heroMedia?: MediaType
   slug: string
   image?: MediaType
   layout: Layout[]
-  meta: {
-    title?: string
-    description?: string
-    keywords?: string
-  }
+  meta: MetaType
 }
 
 export const Page: CollectionConfig = {
@@ -35,10 +65,47 @@ export const Page: CollectionConfig = {
       required: true,
     },
     {
-      name: 'image',
-      label: 'Featured Image',
+      type: 'radio',
+      name: 'heroType',
+      label: 'Hero Type',
+      required: true,
+      defaultValue: 'minimal',
+      options: [
+        {
+          label: 'Minimal',
+          value: 'minimal',
+        },
+        {
+          label: 'Content Above Media',
+          value: 'contentAboveMedia',
+        },
+        {
+          label: 'Content Left of Media',
+          value: 'contentLeftOfMedia',
+        },
+      ],
+    },
+    {
+      name: 'heroContent',
+      label: 'Hero Content',
+      type: 'richText',
+      required: true,
+      // admin: {
+      //   leaves: [
+      //     RedHeadline,
+      //     RedUnderline,
+      //   ],
+      // },
+    },
+    {
+      name: 'heroMedia',
+      label: 'Hero Media',
       type: 'upload',
       relationTo: 'media',
+      required: true,
+      admin: {
+        condition: (_, siblingData) => siblingData?.heroType === 'contentAboveMedia' || siblingData?.heroType === 'contentLeftOfMedia',
+      },
     },
     {
       name: 'layout',
@@ -48,44 +115,21 @@ export const Page: CollectionConfig = {
       blocks: [
         CallToAction,
         Content,
-        Image,
+        CTAGrid,
+        Media,
+        MediaCollage,
+        MediaContentCollage,
+        MediaGrid,
+        MediaStatCollage,
+        Slider,
+        Spacer,
+        Statistics,
+        StickyContent,
+        StudySlider,
       ],
     },
-    {
-      name: 'meta',
-      label: 'Page Meta',
-      type: 'group',
-      fields: [
-        {
-          name: 'title',
-          label: 'Title',
-          type: 'text',
-        },
-        {
-          name: 'description',
-          label: 'Description',
-          type: 'textarea',
-        },
-        {
-          name: 'keywords',
-          label: 'Keywords',
-          type: 'text',
-        },
-      ],
-    },
-    {
-      name: 'slug',
-      label: 'Page Slug',
-      type: 'text',
-      admin: {
-        position: 'sidebar',
-      },
-      hooks: {
-        beforeValidate: [
-          formatSlug('title'),
-        ],
-      },
-    },
+    meta,
+    slug,
   ],
 };
 
